@@ -1,0 +1,73 @@
+{
+  "project_info": {
+    "project_number": "932354138866",
+    "firebase_url": "https://ashishtaldeokar-2a9a3.firebaseio.com",
+    "project_id": "ashishtaldeokar-2a9a3",
+    "storage_bucket": "ashishtaldeokar-2a9a3.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:932354138866:android:58607e5bb914b2f6",
+        "android_client_info": {
+          "package_name": "com.google.firebase.samples.apps.friendlypix"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "932354138866-0mmo9u2ee5jv3frvaupf7vd6i0s7phaq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD3fbpFWVwWWLmoIhTZ_rJ58EcV-J49-cw"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:932354138866:android:4cbc533986a7ace0",
+        "android_client_info": {
+          "package_name": "com.sspm.quickride"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "932354138866-0mmo9u2ee5jv3frvaupf7vd6i0s7phaq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD3fbpFWVwWWLmoIhTZ_rJ58EcV-J49-cw"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
