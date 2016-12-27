@@ -170,9 +170,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     protected void onStop() {
         mGoogleApiClient.disconnect();
+        mMarker.remove();
         //noinspection MissingPermission
         mLocationManager.removeUpdates(mLocationListener);
         super.onStop();
+        LoginActivity.fire.becomeInActive();
     }
 
     @Override
@@ -213,12 +215,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //else Start using location services
         mMyLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         setmMap();
-        Toast.makeText(getApplicationContext(), "just connected!", Toast.LENGTH_LONG).show();
+        //Toast.makeText(getApplicationContext(), "just connected!", Toast.LENGTH_LONG).show();
         mLocationManager.requestLocationUpdates(LOCATION_REFRESH_TIME,LOCATION_REFRESH_DISTANCE,mCriteria,mLocationListener,null);
     }
 
     @Override
     public void onConnectionSuspended(int i) {
+        mMarker.remove();
         Toast.makeText(getApplicationContext(), "Connection Suspended", Toast.LENGTH_LONG).show();
         onStop();
     }

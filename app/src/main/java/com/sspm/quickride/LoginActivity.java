@@ -54,7 +54,7 @@ public class LoginActivity extends AppCompatActivity {
                     fire.setIMEI(IMEI);
                     Intent home = new Intent(LoginActivity.this, MapsActivity.class);
                     startActivity(home);
-                    Toast.makeText(getApplicationContext(), "Authentication successful for " + phoneNumber, Toast.LENGTH_LONG).show();
+                    //Toast.makeText(getApplicationContext(), "Authentication successful for " + phoneNumber, Toast.LENGTH_LONG).show();
                 }
                 @Override
                 public void failure(DigitsException exception) {
