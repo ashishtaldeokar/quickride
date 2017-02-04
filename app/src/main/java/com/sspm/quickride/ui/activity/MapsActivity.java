@@ -1,4 +1,4 @@
-package com.sspm.quickride;
+package com.sspm.quickride.ui.activity;
 
 import android.Manifest;
 import android.app.Activity;
@@ -44,6 +44,7 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.sspm.quickride.R;
 import com.sspm.quickride.firebase_database.AbstractDatabaseReference;
 import com.sspm.quickride.firebase_database.GeoFireReference;
 import com.sspm.quickride.firebase_database.RidesReference;

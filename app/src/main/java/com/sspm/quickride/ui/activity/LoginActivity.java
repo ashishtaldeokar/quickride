@@ -1,9 +1,11 @@
-package com.sspm.quickride;
+package com.sspm.quickride.ui.activity;
 import com.digits.sdk.android.AuthCallback;
 import com.digits.sdk.android.DigitsAuthButton;
 import com.digits.sdk.android.DigitsException;
 import com.digits.sdk.android.DigitsSession;
 import com.digits.sdk.android.SessionListener;
+import com.sspm.quickride.MapsActivity;
+import com.sspm.quickride.R;
 import com.sspm.quickride.pojo.User;
 import com.twitter.sdk.android.core.TwitterCore;
 import com.twitter.sdk.android.core.TwitterAuthConfig;
