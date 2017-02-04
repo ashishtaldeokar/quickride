@@ -30,6 +30,7 @@ import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
+import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationRequest;
@@ -44,6 +45,7 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.database.DataSnapshot;
 import com.sspm.quickride.R;
 import com.sspm.quickride.firebase_database.AbstractDatabaseReference;
 import com.sspm.quickride.firebase_database.GeoFireReference;
@@ -53,6 +55,8 @@ import com.sspm.quickride.pojo.Ride;
 import com.sspm.quickride.pojo.User;
 import com.sspm.quickride.ui.dialog.MessageDialog;
 import com.sspm.quickride.ui.interfaces.Callback;
+import com.sspm.quickride.ui.interfaces.Callback_v2;
+import com.sspm.quickride.util.Constants;
 import com.sspm.quickride.util.IntentHelper;
 import com.sspm.quickride.util.RequestCodes;
 
@@ -113,13 +117,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //------------------------------------------------------------------------------------------
-        //              Create an instance of GoogleAPIClient.
-        //------------------------------------------------------------------------------------------
-        connectGoogleApiClient();
-        createLocationRequest();
-        //------------------------------------------------------------------------------------------
-        //------------------------------------------------------------------------------------------
+
+        // First we need to check availability of play services
+        if (checkPlayServices()) {
+
+            // Building the GoogleApi client
+            buildGoogleApiClient();
+
+            createLocationRequest();
+        }
+
         //              Initialise view
         //------------------------------------------------------------------------------------------
         setContentView(R.layout.activity_maps);
@@ -141,21 +148,46 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     @Override
-    protected void onResume() {
-        connectGoogleApiClient();
-        createLocationRequest();
-        super.onResume();
+    protected void onStart() {
+        super.onStart();
+        if (mGoogleApiClient != null) {
+            mGoogleApiClient.connect();
+        }
     }
 
-    private void connectGoogleApiClient(){
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        checkPlayServices();
+
+        // Resuming the periodic location updates
+        if (mGoogleApiClient.isConnected()) {
+            startLocationUpdates();
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (mGoogleApiClient.isConnected()) {
+            mGoogleApiClient.disconnect();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        stopLocationUpdates();
+    }
+
+    private void buildGoogleApiClient(){
         if (mGoogleApiClient == null) {
             mGoogleApiClient = new GoogleApiClient.Builder(this)
                     .addConnectionCallbacks(this)
                     .addOnConnectionFailedListener(this)
                     .addApi(LocationServices.API)
                     .build();
-//              start instance of GoogleAPIClient.
-            mGoogleApiClient.connect();
         }
     }
 
@@ -167,13 +199,30 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void initiateDatabase(){
         userReference = new UserReference();
-        userReference.initiateDatabase();
+        userReference.initiateDatabase(new Callback_v2() {
+            @Override
+            public void invoke(Object o) {
+                Log.d("Listening","in maps activity : "+(DataSnapshot)o);
+                Toast.makeText(MapsActivity.this, "dataSnapshot"+(DataSnapshot)o, Toast.LENGTH_SHORT).show();
+            }
+        });
 
         ridesReference = new RidesReference();
-        ridesReference.initiateDatabase();
+        ridesReference.initiateDatabase(new Callback_v2() {
+            @Override
+            public void invoke(Object o) {
+                Log.d("Listening","in maps activity : "+(DataSnapshot)o);
+                Toast.makeText(MapsActivity.this, "dataSnapshot"+(DataSnapshot)o, Toast.LENGTH_SHORT).show();
+            }
+        });
 
         geoFireReference = new GeoFireReference();
-        geoFireReference.initiateDatabase();
+        geoFireReference.initiateDatabase(new Callback_v2() {
+            @Override
+            public void invoke(Object o) {
+
+            }
+        });
     }
 
     private void init() {
@@ -367,22 +416,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         alert.show();
     }
 
-    protected void onStop() {
-        mGoogleApiClient.disconnect();
-        if(mMarker != null)
-            mMarker.remove();
-
-        userReference.becameInActive();
-        if(mMyLocation != null)
-            geoFireReference.setLocation(mMyLocation);
-
-        if(!isLocationPermissionAllowed()){
-            checkLocationPermission();
-            return;
-        }
-        mLocationManager.removeUpdates(mLocationListener);
-        super.onStop();
-    }
+//    protected void onStop() {
+//        mGoogleApiClient.disconnect();
+//        if(mMarker != null)
+//            mMarker.remove();
+//
+//        userReference.becameInActive();
+//        if(mMyLocation != null)
+//            geoFireReference.setLocation(mMyLocation);
+//
+//        if(!isLocationPermissionAllowed()){
+//            checkLocationPermission();
+//            return;
+//        }
+//        mLocationManager.removeUpdates(mLocationListener);
+//        super.onStop();
+//    }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -483,6 +532,41 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     public void gotToGPSSetting() {
         IntentHelper.openGpsIntent();
+    }
+
+    /**
+     * Method to verify google play services on the device
+     * */
+    private boolean checkPlayServices() {
+        int resultCode = GooglePlayServicesUtil
+                .isGooglePlayServicesAvailable(this);
+        if (resultCode != ConnectionResult.SUCCESS) {
+            if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
+                GooglePlayServicesUtil.getErrorDialog(resultCode, this,
+                        Constants.PLAY_SERVICES_RESOLUTION_REQUEST).show();
+            } else {
+                Toast.makeText(getApplicationContext(),
+                        "This device is not supported.", Toast.LENGTH_LONG)
+                        .show();
+                finish();
+            }
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Starting the location updates
+     * */
+    protected void startLocationUpdates() {
+        mLocationManager.requestLocationUpdates(LOCATION_REFRESH_TIME, LOCATION_REFRESH_DISTANCE, mCriteria, mLocationListener, null);
+    }
+
+    /**
+     * Stopping location updates
+     */
+    protected void stopLocationUpdates() {
+        mLocationManager.removeUpdates(mLocationListener);
     }
 
 }

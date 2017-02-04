@@ -8,6 +8,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
+import com.sspm.quickride.ui.interfaces.Callback_v2;
 import com.sspm.quickride.util.Constants;
 
 /**
@@ -21,7 +22,7 @@ public class GeoFireReference extends AbstractDatabaseReference {
     GeoFire geoUsersFire;
 
     @Override
-    public void initiateDatabase() {
+    public void initiateDatabase(Callback_v2 callback_v2) {
         mGeoFireRef = mDatabase.getReference(Constants.GEO_FIRE_REFERENCE);
         geoUsersFire = new GeoFire(mGeoFireRef);
         listener = new ValueEventListener() {

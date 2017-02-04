@@ -30,11 +30,11 @@
             android:value="781d656b17c05a94ade9b4440fe8c8b729e11170" />
 
         <activity
-            android:name=".MapsActivity"
+            android:name=".ui.activity.MapsActivity"
             android:label="@string/title_activity_maps"
             android:screenOrientation="portrait">
         </activity>
-        <activity android:name=".LoginActivity"
+        <activity android:name=".ui.activity.LoginActivity"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

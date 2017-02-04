@@ -7,6 +7,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
 import com.sspm.quickride.pojo.User;
+import com.sspm.quickride.ui.interfaces.Callback_v2;
 import com.sspm.quickride.util.Constants;
 
 /**
@@ -18,7 +19,7 @@ public class UserReference extends AbstractDatabaseReference {
     private ValueEventListener listener;
 
     @Override
-    public void initiateDatabase() {
+    public void initiateDatabase(Callback_v2 callback) {
         mUserRef = mDatabase.getReference(Constants.USER_REFERENCE + getMyMobile());
         listener = new ValueEventListener() {
             @Override
