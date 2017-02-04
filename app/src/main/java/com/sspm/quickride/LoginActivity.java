@@ -4,6 +4,7 @@ import com.digits.sdk.android.DigitsAuthButton;
 import com.digits.sdk.android.DigitsException;
 import com.digits.sdk.android.DigitsSession;
 import com.digits.sdk.android.SessionListener;
+import com.sspm.quickride.pojo.User;
 import com.twitter.sdk.android.core.TwitterCore;
 import com.twitter.sdk.android.core.TwitterAuthConfig;
 import com.digits.sdk.android.Digits;
@@ -23,10 +24,8 @@ public class LoginActivity extends AppCompatActivity {
     // Note: Your consumer key and secret should be obfuscated in your source code before shipping.
     private static final String TWITTER_KEY = "dezTGFPENT8TDvGAny7H9rRFS";
     private static final String TWITTER_SECRET = "6CHehmHGTC5avcjmQK5KRf6XUeC0thrZhiM1qAjPlxdPXWa7ZM";
-    public static String mobile;
     public static TelephonyManager telephonyManager;
     private static String IMEI;
-    public static FireService fire = new FireService();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,10 +48,9 @@ public class LoginActivity extends AppCompatActivity {
                 @Override
                 public void success(DigitsSession session, String phoneNumber) {
                     // TODO: associate the session userID with your user model
-                    mobile = phoneNumber;
-                    fire.setMobile(mobile);
-                    fire.setIMEI(IMEI);
+                    User user = new User(IMEI, phoneNumber);
                     Intent home = new Intent(LoginActivity.this, MapsActivity.class);
+                    home.putExtra("user", user);
                     startActivity(home);
                     //Toast.makeText(getApplicationContext(), "Authentication successful for " + phoneNumber, Toast.LENGTH_LONG).show();
                 }
@@ -74,7 +72,7 @@ public class LoginActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        fire.becomeInActive();
+//        fire.becameInActive();
         super.onDestroy();
     }
     @Override

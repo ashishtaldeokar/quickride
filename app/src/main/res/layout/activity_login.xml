@@ -2,15 +2,16 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="10dp"
     android:orientation="vertical"
+    android:padding="10dp"
     android:weightSum="1">
+
     <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="100dp"
         android:id="@+id/imageView"
-        android:src="@drawable/auto"
-        android:layout_weight="0.70" />
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.70"
+        android:src="@drawable/auto" />
 
     <com.digits.sdk.android.DigitsAuthButton
         android:id="@+id/auth_button"
