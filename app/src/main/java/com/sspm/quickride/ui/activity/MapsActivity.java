@@ -416,23 +416,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         alert.show();
     }
 
-//    protected void onStop() {
-//        mGoogleApiClient.disconnect();
-//        if(mMarker != null)
-//            mMarker.remove();
-//
-//        userReference.becameInActive();
-//        if(mMyLocation != null)
-//            geoFireReference.setLocation(mMyLocation);
-//
-//        if(!isLocationPermissionAllowed()){
-//            checkLocationPermission();
-//            return;
-//        }
-//        mLocationManager.removeUpdates(mLocationListener);
-//        super.onStop();
-//    }
-
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
@@ -559,6 +542,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      * Starting the location updates
      * */
     protected void startLocationUpdates() {
+        if(!isLocationPermissionAllowed()){
+            checkLocationPermission();
+            return;
+        }
         mLocationManager.requestLocationUpdates(LOCATION_REFRESH_TIME, LOCATION_REFRESH_DISTANCE, mCriteria, mLocationListener, null);
     }
 
@@ -566,6 +553,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      * Stopping location updates
      */
     protected void stopLocationUpdates() {
+        if(!isLocationPermissionAllowed()){
+            checkLocationPermission();
+            return;
+        }
         mLocationManager.removeUpdates(mLocationListener);
     }
 

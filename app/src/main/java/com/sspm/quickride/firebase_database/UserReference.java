@@ -1,6 +1,7 @@
 package com.sspm.quickride.firebase_database;
 
 import android.location.Location;
+import android.util.Log;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -17,9 +18,11 @@ import com.sspm.quickride.util.Constants;
 public class UserReference extends AbstractDatabaseReference {
     private DatabaseReference mUserRef;
     private ValueEventListener listener;
+    private Callback_v2 callback;
 
     @Override
     public void initiateDatabase(Callback_v2 callback) {
+        this.callback = callback;
         mUserRef = mDatabase.getReference(Constants.USER_REFERENCE + getMyMobile());
         listener = new ValueEventListener() {
             @Override
@@ -53,6 +56,7 @@ public class UserReference extends AbstractDatabaseReference {
 
     @Override
     public void dataChange(DataSnapshot dataSnapshot) {
-
+        callback.invoke(dataSnapshot);
+        Log.d("Listening","dataSnapshot : "+dataSnapshot);
     }
 }
