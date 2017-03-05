@@ -1,25 +1,29 @@
 package com.sspm.quickride.ui.activity;
+
+import android.Manifest;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.AppCompatActivity;
+import android.telephony.TelephonyManager;
+import android.util.Log;
+import android.widget.Toast;
+
 import com.digits.sdk.android.AuthCallback;
+import com.digits.sdk.android.Digits;
 import com.digits.sdk.android.DigitsAuthButton;
 import com.digits.sdk.android.DigitsException;
 import com.digits.sdk.android.DigitsSession;
 import com.digits.sdk.android.SessionListener;
 import com.sspm.quickride.R;
+import com.sspm.quickride.pojo.SharedPreference;
 import com.sspm.quickride.pojo.User;
-import com.twitter.sdk.android.core.TwitterCore;
 import com.twitter.sdk.android.core.TwitterAuthConfig;
-import com.digits.sdk.android.Digits;
+import com.twitter.sdk.android.core.TwitterCore;
+
 import io.fabric.sdk.android.Fabric;
-import android.Manifest;
-import android.content.Context;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.telephony.TelephonyManager;
-import android.util.Log;
-import android.widget.Toast;
 
 public class LoginActivity extends AppCompatActivity {
     // Note: Your consumer key and secret should be obfuscated in your source code before shipping.
@@ -44,26 +48,27 @@ public class LoginActivity extends AppCompatActivity {
                         .getPhoneNumber(), Toast.LENGTH_SHORT).show();
             }
         });
-        if (digitsButton != null) {
-            digitsButton.setCallback(new AuthCallback() {
-                @Override
-                public void success(DigitsSession session, String phoneNumber) {
-                    // TODO: associate the session userID with your user model
-                    User user = new User(IMEI, phoneNumber);
-                    Intent home = new Intent(LoginActivity.this, MapsActivity.class);
-                    home.putExtra("user", user);
-                    startActivity(home);
-                    //Toast.makeText(getApplicationContext(), "Authentication successful for " + phoneNumber, Toast.LENGTH_LONG).show();
-                }
-                @Override
-                public void failure(DigitsException exception) {
-                    Log.d("Digits", "Sign in with Digits failure", exception);
-                }
-            });
-        }
-        else{
-            Toast.makeText(getApplicationContext(), "Null wala error ", Toast.LENGTH_LONG).show();
-        }
+        digitsButton.setCallback(new AuthCallback() {
+            @Override
+            public void success(DigitsSession session, String phoneNumber) {
+                // TODO: associate the session userID with your user model
+                User user = new User(IMEI, phoneNumber);
+                /**
+                 * sets phone number in sharedPreferences
+                 */
+                SharedPreference.getPreference().setMyPhoneNumber(phoneNumber);
+                Intent home = new Intent(LoginActivity.this, MapsActivity.class);
+                home.putExtra("user", user);
+                startActivity(home);
+                //Toast.makeText(getApplicationContext(), "Authentication successful for " + phoneNumber, Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void failure(DigitsException exception) {
+                Log.d("Digits", "Sign in with Digits failure", exception);
+            }
+        });
+
     }
 
     @Override
@@ -76,6 +81,7 @@ public class LoginActivity extends AppCompatActivity {
 //        fire.becameInActive();
         super.onDestroy();
     }
+
     @Override
     public void onPause() {
         super.onPause();  // Always call the superclass method first
@@ -83,9 +89,8 @@ public class LoginActivity extends AppCompatActivity {
 
             ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.READ_PHONE_STATE}, 113);
             return;
-        }
-        else {
-            telephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
+        } else {
+            telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
             IMEI = telephonyManager.getDeviceId();
         }
 
@@ -99,7 +104,7 @@ public class LoginActivity extends AppCompatActivity {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // permission was granted, yay! Do the
                     // contacts-related task you need to do.
-                    telephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
+                    telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
                     IMEI = telephonyManager.getDeviceId();
                     return;
 
@@ -114,4 +119,5 @@ public class LoginActivity extends AppCompatActivity {
             // other 'case' lines to check for other
             // permissions this app might request
         }
-}}
+    }
+}

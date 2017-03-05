@@ -3,7 +3,6 @@ package com.sspm.quickride.ui.activity;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Point;
@@ -17,7 +16,6 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.CardView;
 import android.text.InputType;
 import android.util.Log;
@@ -52,6 +50,7 @@ import com.sspm.quickride.firebase_database.GeoFireReference;
 import com.sspm.quickride.firebase_database.RidesReference;
 import com.sspm.quickride.firebase_database.UserReference;
 import com.sspm.quickride.pojo.Ride;
+import com.sspm.quickride.pojo.SharedPreference;
 import com.sspm.quickride.pojo.User;
 import com.sspm.quickride.ui.dialog.MessageDialog;
 import com.sspm.quickride.ui.interfaces.Callback;
@@ -78,7 +77,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     int topPadding, bottomPadding;
     Place pl_source = null, pl_destination = null;
 
-    User user;
     UserReference userReference;
     RidesReference ridesReference;
     GeoFireReference geoFireReference;
@@ -91,7 +89,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             mMyLocation = location; //set mMyLocation to new location
             userReference.changeLocation(mMyLocation); //update it to database
             if (mMarker == null) //if first time
-                setmMap();
+                setUpMap();
             mMarker.setPosition(new LatLng(location.getLatitude(), location.getLongitude())); //update mMarker on mMap
         }
 
@@ -102,7 +100,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         @Override
         public void onProviderEnabled(String s) {
             //triggered when GPS/Location Enabled.
-            setmMap();
+            setUpMap();
             Toast.makeText(getApplicationContext(), s, Toast.LENGTH_LONG).show();
         }
 
@@ -131,8 +129,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //------------------------------------------------------------------------------------------
         setContentView(R.layout.activity_maps);
 
-        getIntentData();
-
         init();
         //------------------------------------------------------------------------------------------
         //              Obtain the SupportMapFragment and get notified when the map is ready to be used
@@ -140,11 +136,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-        //------------------------------------------------------------------------------------------
-        //              initialise Location Manager
-        //------------------------------------------------------------------------------------------
-        mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-
     }
 
     @Override
@@ -161,10 +152,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         checkPlayServices();
 
+        /**
+         *    initialise Location Manager
+         */
+        mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+
         // Resuming the periodic location updates
         if (mGoogleApiClient.isConnected()) {
             startLocationUpdates();
         }
+
+        initiateDatabase();
+
     }
 
     @Override
@@ -191,13 +190,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    private void getIntentData(){
-        user = (User) getIntent().getSerializableExtra("user");
-        AbstractDatabaseReference.setMyMobile(user.getMyMobile());
-        initiateDatabase();
-    }
 
     private void initiateDatabase(){
+
+        AbstractDatabaseReference.setMyMobile(SharedPreference.getPreference().getMyPhoneNumber());
+
         userReference = new UserReference();
         userReference.initiateDatabase(new Callback_v2() {
             @Override
@@ -297,7 +294,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         } catch (GooglePlayServicesNotAvailableException e) {
             // TODO: Handle the error.
         }
-/*        below code is used to open google searchview directly in afragment instead of new activity        */
+
+/**
+ *      below code is used to open google searchview directly in afragment instead of new activity
+ **/
 
 //        PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment) getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
 //        ((EditText)autocompleteFragment).setHint("");
@@ -342,21 +342,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             } else if (resultCode == RESULT_CANCELED) {
                 // The user canceled the operation.
             }
-        }else if (requestCode == RequestCodes.REQUEST_CHECK_SETTINGS) {
-            switch (resultCode) {
-                case Activity.RESULT_OK:
-                    // All required changes were successfully made
-                    if (mGoogleApiClient.isConnected() /*&& userMarker == null*/) {
-//                        startLocationUpdates
-//                        setmMap();
-                    }
-                    break;
-                case Activity.RESULT_CANCELED:
-                    // The user was asked to change settings, but chose not to
-                    break;
-                default:
-                    break;
-            }
         }
     }
 
@@ -369,7 +354,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         onStop();
     }
 
-    public void setmMap() {
+    public void setUpMap() {
 
         if(!isLocationPermissionAllowed()){
             checkLocationPermission();
@@ -390,36 +375,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     .tilt(40)                   // Sets the tilt of the camera to 30 degrees
                     .build();                   // Creates a CameraPosition from the builder
             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-        } else {
-            Toast.makeText(getApplicationContext(), "Location Error", Toast.LENGTH_LONG).show();
-            if (!mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                buildAlertMessageNoGps();
-            }
         }
-    }
-
-    private void buildAlertMessageNoGps() {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage("Your GPS seems to be disabled, do you want to enable it?")
-                .setCancelable(false)
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                        startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
-                    }
-                })
-                .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                    public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                        dialog.cancel();
-                    }
-                });
-        final AlertDialog alert = builder.create();
-        alert.show();
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
+//      map fragment is loaded asynchronously, when ready assign in to mMap
         mMap = googleMap;
-    } //map fragment is loaded asynchronously, when ready assign in to mMap
+    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
@@ -432,7 +395,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     //If condition = true permission was granted and therefore START using Location services
                     //noinspection MissingPermission
                     mMyLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-                    setmMap();
+                    setUpMap();
 
                 } else {
                     // permission denied, boo! Prepare an activity to notify.
@@ -454,13 +417,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if (!isGPSEnabled())
             promptForGpsPermission();
         else {
-
             //else Start using location services
             createLocationRequest();
             mMyLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
             if(mMyLocation != null)
-                setmMap();
-            //Toast.makeText(getApplicationContext(), "just connected!", Toast.LENGTH_LONG).show();
+                setUpMap();
             mLocationManager.requestLocationUpdates(LOCATION_REFRESH_TIME, LOCATION_REFRESH_DISTANCE, mCriteria, mLocationListener, null);
         }
     }
@@ -484,9 +445,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public boolean isGPSEnabled() {
-        LocationManager lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-        boolean gpsEnabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
-        return gpsEnabled;
+        return mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
     }
 
     public void promptForGpsPermission() {

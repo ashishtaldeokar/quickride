@@ -11,4 +11,6 @@ public class Constants {
 
     public final static int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
 
+    public final static String MY_PHONE_NUMBER = "myPhoneNumber";
+
 }
