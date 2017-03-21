@@ -101,13 +101,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         public void onProviderEnabled(String s) {
             //triggered when GPS/Location Enabled.
             setUpMap();
-            Toast.makeText(getApplicationContext(), s, Toast.LENGTH_LONG).show();
         }
 
         @Override
         public void onProviderDisabled(String s) {
             //triggered when GPS/Location Disabled.
-            Toast.makeText(getApplicationContext(), s, Toast.LENGTH_LONG).show();
             onStop();
         }
     };
@@ -199,8 +197,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         userReference.initiateDatabase(new Callback_v2() {
             @Override
             public void invoke(Object o) {
-                Log.d("Listening","in maps activity : "+(DataSnapshot)o);
-                Toast.makeText(MapsActivity.this, "dataSnapshot"+(DataSnapshot)o, Toast.LENGTH_SHORT).show();
+//                Log.d("Listening","in maps activity : "+(DataSnapshot)o);
             }
         });
 
@@ -208,8 +205,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         ridesReference.initiateDatabase(new Callback_v2() {
             @Override
             public void invoke(Object o) {
-                Log.d("Listening","in maps activity : "+(DataSnapshot)o);
-                Toast.makeText(MapsActivity.this, "dataSnapshot"+(DataSnapshot)o, Toast.LENGTH_SHORT).show();
+//                Log.d("Listening","in maps activity : "+(DataSnapshot)o);
             }
         });
 
@@ -350,7 +346,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // An unresolvable error has occurred and a connection to Google APIs
         // could not be established. Display an error message, or handle
         // the failure silently (mostly no or failed internet connection)
-        Toast.makeText(getApplicationContext(), "Google Services Error", Toast.LENGTH_LONG).show();
         onStop();
     }
 
@@ -440,7 +435,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onConnectionSuspended(int i) {
         if(mMarker != null)
             mMarker.remove();
-        Toast.makeText(getApplicationContext(), "Connection Suspended", Toast.LENGTH_LONG).show();
         onStop();
     }
 
