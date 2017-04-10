@@ -2,6 +2,7 @@ package com.sspm.quickride.ui.activity;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -21,6 +22,7 @@ import android.text.InputType;
 import android.util.Log;
 import android.view.Display;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -43,7 +45,11 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.ValueEventListener;
 import com.sspm.quickride.R;
 import com.sspm.quickride.firebase_database.AbstractDatabaseReference;
 import com.sspm.quickride.firebase_database.GeoFireReference;
@@ -68,6 +74,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Criteria mCriteria = new Criteria();
     private Location mMyLocation;
     private Marker mMarker;
+    private DatabaseReference mRideRef;
     LocationRequest locationRequest;
 
     private GoogleApiClient mGoogleApiClient;
@@ -240,13 +247,40 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(final View view) {
 
-                Ride ride = new Ride(AbstractDatabaseReference.getMyMobile(), String.valueOf(pl_source.getLatLng().latitude), String.valueOf(pl_source.getLatLng().longitude),String.valueOf(pl_destination.getLatLng().latitude), String.valueOf(pl_destination.getLatLng().longitude));
+                Ride ride = new Ride(AbstractDatabaseReference.getMyMobile(),
+                        String.valueOf(pl_source.getLatLng().latitude),
+                        String.valueOf(pl_source.getLatLng().longitude),
+                        String.valueOf(pl_destination.getLatLng().latitude),
+                        String.valueOf(pl_destination.getLatLng().longitude),
+                        tv_source.getText().toString(),
+                        tv_destination.getText().toString()
+                );
                 ridesReference.addMyRide(ride);
+                final Dialog loader = new Dialog(view.getContext());
+                loader.setContentView(R.layout.loader);
+                loader.setTitle("Searching for auto..");
+                loader.show();
+                ridesReference.getRideRef().addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        Ride t = dataSnapshot.getValue(Ride.class);
+                        if(t.getStatus() == 1){
+                            Intent rideInfo = new Intent(view.getContext(), com.sspm.quickride.ui.activity.rideInfo.class);
+                            startActivity(rideInfo);
+                            loader.dismiss();
+                        }
+                    }
 
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
             }
         });
+
         linear = (CardView) findViewById(R.id.linear);
         topPadding = getViewHeight(linear);
 

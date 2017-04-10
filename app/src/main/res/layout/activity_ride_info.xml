@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    tools:context="com.sspm.quickride.ui.activity.rideInfo">
+
+    <TextView
+        android:id="@+id/infoTv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="36sp"
+        android:fontFamily="sans-serif-light"
+        android:textColor="@android:color/black"
+        android:background="#ccddff"
+        android:padding="20dp"/>
+
+    <Button
+        android:id="@+id/call"
+        android:layout_weight="1"
+        android:layout_width="match_parent"
+        android:layout_alignParentBottom="true"
+        android:layout_height="75sp"
+        android:background="#3D447A"
+        android:text="CALL DRIVER"
+        android:textAlignment="center"
+        android:textColor="@android:color/white"
+        />
+</RelativeLayout>
