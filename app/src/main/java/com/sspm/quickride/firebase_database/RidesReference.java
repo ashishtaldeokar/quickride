@@ -35,6 +35,9 @@ public class RidesReference extends AbstractDatabaseReference {
         };
         mRideRef.addValueEventListener(listener);
     }
+    public DatabaseReference getRideRef(){
+        return mRideRef;
+    }
 
     public void addMyRide(Ride ride){
         mRideRef.setValue(ride);

@@ -6,7 +6,7 @@ package com.sspm.quickride.pojo;
 
 public class Ride{
 
-    String myMobile, rikMobile, sourceLat, sourceLng, destinationLat, destinationLng, rikLat, rikLng;
+    String myMobile, rikMobile, sourceLat, sourceLng, destinationLat, destinationLng, rikLat, rikLng, srcText, destText;
     int status;
 
     /**
@@ -18,13 +18,18 @@ public class Ride{
      */
     int SEARCHING = 0, WAITING = 1, CONFIRM = 2, COMPLETED = 3;
 
-    public Ride(String myMobile, String sourceLat, String sourceLng, String destinationLat, String destinationLng) {
+    public Ride(String myMobile, String sourceLat, String sourceLng, String destinationLat, String destinationLng, String srcText, String destText) {
         this.myMobile = myMobile;
         this.sourceLat = sourceLat;
         this.sourceLng = sourceLng;
         this.destinationLat = destinationLat;
         this.destinationLng = destinationLng;
         this.status = SEARCHING;
+        this.srcText = srcText;
+        this.destText = destText;
+    }
+
+    public Ride() {
     }
 
     public String getMyMobile() {

@@ -2,6 +2,7 @@ package com.sspm.quickride.ui.activity;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -21,6 +22,7 @@ import android.text.InputType;
 import android.util.Log;
 import android.view.Display;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -45,7 +47,11 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.ValueEventListener;
 import com.sspm.quickride.R;
 import com.sspm.quickride.firebase_database.AbstractDatabaseReference;
 import com.sspm.quickride.firebase_database.GeoFireReference;
@@ -71,6 +77,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Criteria mCriteria = new Criteria();
     private Location mMyLocation;
     private Marker mMarker;
+    private DatabaseReference mRideRef;
     LocationRequest locationRequest;
     private PolylineOptions mPath;
 
@@ -244,44 +251,81 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                validateAndProcessSourceDest();
+            public void onClick(final View view) {
+
+                if (pl_source == null || pl_destination == null) {
+
+                    MessageDialog dialog = new MessageDialog(MapsActivity.this);
+                    dialog.setTitle("Oops..!");
+                    dialog.setContent("Please enter valid address");
+                    dialog.setCancelable();
+                    dialog.show(null);
+
+                } else {
+
+                    Ride ride = new Ride(AbstractDatabaseReference.getMyMobile(),
+                            String.valueOf(pl_source.getLatLng().latitude),
+                            String.valueOf(pl_source.getLatLng().longitude),
+                            String.valueOf(pl_destination.getLatLng().latitude),
+                            String.valueOf(pl_destination.getLatLng().longitude),
+                            tv_source.getText().toString(),
+                            tv_destination.getText().toString()
+                    );
+                    ridesReference.addMyRide(ride);
+                    final Dialog loader = new Dialog(view.getContext());
+                    loader.setContentView(R.layout.loader);
+                    loader.setTitle("Searching for auto..");
+                    loader.show();
+                    ridesReference.getRideRef().addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            Ride t = dataSnapshot.getValue(Ride.class);
+                            if (t.getStatus() == 1) {
+                                Intent rideInfo = new Intent(view.getContext(), com.sspm.quickride.ui.activity.rideInfo.class);
+                                startActivity(rideInfo);
+                                loader.dismiss();
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
+                }
             }
         });
+
         linear = (CardView) findViewById(R.id.linear);
         topPadding = getViewHeight(linear);
 
     }
 
-    private void validateAndProcessSourceDest(){
-        if(pl_source == null || pl_destination == null){
+    private void validateAndProcessSourceDest() {
 
-            MessageDialog dialog = new MessageDialog(this);
-            dialog.setTitle("Oops..!");
-            dialog.setContent("Please enter valid address");
-            dialog.setCancelable();
-            dialog.show(null);
+        if (tv_source.getText().length() > 0 && tv_destination.getText().length() > 0) {
 
-        }else {
+            final MaterialDialog loaderDialog = new MaterialDialog.Builder(this)
+                    .title("PLease wait...")
+                    .cancelable(false)
+                    .progress(true, 0)
+                    .show();
 
             // Getting URL to the Google Directions API
             String url = getDirectionsUrl(pl_source.getLatLng(), pl_destination.getLatLng());
             new DownloadTask(new Callback_v2() {
                 @Override
                 public void invoke(Object o) {
-                    if(o != null){
-                        Ride ride = new Ride(AbstractDatabaseReference.getMyMobile(), String.valueOf(pl_source.getLatLng().latitude), String.valueOf(pl_source.getLatLng().longitude), String.valueOf(pl_destination.getLatLng().latitude), String.valueOf(pl_destination.getLatLng().longitude));
-                        ridesReference.addMyRide(ride);
-
-
+                    loaderDialog.dismiss();
+                    if (o != null) {
                         /**
                          * need to move camera to polyline and add marker at source and destination
-                         *
-                         */
+                         **/
                         mPath = ((PolylineOptions) o);
                         mMap.addPolyline(mPath);
 
-                    }else{
+                    } else {
+
                         MessageDialog dialog = new MessageDialog(MapsActivity.this);
                         dialog.setTitle("Oops..!");
                         dialog.setContent("Distance is too far, please enter valid address.");
@@ -386,7 +430,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             if (resultCode == RESULT_OK) {
                 pl_source = PlaceAutocomplete.getPlace(this, data);
                 tv_source.setText(pl_source.getName());
-                Log.i("PLACE", "Place: " + pl_source.getName());
+
+                validateAndProcessSourceDest();
+
             } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
                 Status status = PlaceAutocomplete.getStatus(this, data);
                 // TODO: Handle the error.
@@ -399,7 +445,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             if (resultCode == RESULT_OK) {
                 pl_destination = PlaceAutocomplete.getPlace(this, data);
                 tv_destination.setText(pl_destination.getName());
-                Log.i("PLACE", "Place: " + pl_destination.getName());
+
+                validateAndProcessSourceDest();
+
             } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
                 Status status = PlaceAutocomplete.getStatus(this, data);
                 // TODO: Handle the error.

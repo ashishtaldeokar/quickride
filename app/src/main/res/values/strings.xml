@@ -1,6 +1,7 @@
 <resources>
-    <string name="app_name">QuickRide</string>
-    <string name="title_activity_maps">Map</string>
+    <string name="app_name">Get-Auto</string>
+    <string name="title_activity_maps">Get-Auto</string>
     <string name="source">Source</string>
     <string name="destination">Destination</string>
+    <string name="title_activity_ride_info">Get-Auto</string>
 </resources>

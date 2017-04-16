@@ -2,16 +2,17 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#3D447A"
     android:orientation="vertical"
     android:padding="10dp"
     android:weightSum="1">
 
-    <ImageView
+    <pl.droidsonroids.gif.GifImageView
         android:id="@+id/imageView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="0.70"
-        android:src="@drawable/auto" />
+        android:src="@drawable/autoanimater" />
 
     <com.digits.sdk.android.DigitsAuthButton
         android:id="@+id/auth_button"
