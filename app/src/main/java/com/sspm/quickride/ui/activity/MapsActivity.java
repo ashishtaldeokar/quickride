@@ -25,6 +25,7 @@ import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
@@ -43,6 +44,7 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.firebase.database.DataSnapshot;
 import com.sspm.quickride.R;
 import com.sspm.quickride.firebase_database.AbstractDatabaseReference;
@@ -56,6 +58,7 @@ import com.sspm.quickride.ui.dialog.MessageDialog;
 import com.sspm.quickride.ui.interfaces.Callback;
 import com.sspm.quickride.ui.interfaces.Callback_v2;
 import com.sspm.quickride.util.Constants;
+import com.sspm.quickride.util.DownloadTask;
 import com.sspm.quickride.util.IntentHelper;
 import com.sspm.quickride.util.RequestCodes;
 
@@ -69,6 +72,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Location mMyLocation;
     private Marker mMarker;
     LocationRequest locationRequest;
+    private PolylineOptions mPath;
 
     private GoogleApiClient mGoogleApiClient;
     TextView tv_source, tv_destination;
@@ -241,15 +245,81 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                Ride ride = new Ride(AbstractDatabaseReference.getMyMobile(), String.valueOf(pl_source.getLatLng().latitude), String.valueOf(pl_source.getLatLng().longitude),String.valueOf(pl_destination.getLatLng().latitude), String.valueOf(pl_destination.getLatLng().longitude));
-                ridesReference.addMyRide(ride);
-
+                validateAndProcessSourceDest();
             }
         });
         linear = (CardView) findViewById(R.id.linear);
         topPadding = getViewHeight(linear);
 
+    }
+
+    private void validateAndProcessSourceDest(){
+        if(pl_source == null || pl_destination == null){
+
+            MessageDialog dialog = new MessageDialog(this);
+            dialog.setTitle("Oops..!");
+            dialog.setContent("Please enter valid address");
+            dialog.setCancelable();
+            dialog.show(null);
+
+        }else {
+
+            // Getting URL to the Google Directions API
+            String url = getDirectionsUrl(pl_source.getLatLng(), pl_destination.getLatLng());
+            new DownloadTask(new Callback_v2() {
+                @Override
+                public void invoke(Object o) {
+                    if(o != null){
+                        Ride ride = new Ride(AbstractDatabaseReference.getMyMobile(), String.valueOf(pl_source.getLatLng().latitude), String.valueOf(pl_source.getLatLng().longitude), String.valueOf(pl_destination.getLatLng().latitude), String.valueOf(pl_destination.getLatLng().longitude));
+                        ridesReference.addMyRide(ride);
+
+
+                        /**
+                         * need to move camera to polyline and add marker at source and destination
+                         *
+                         */
+                        mPath = ((PolylineOptions) o);
+                        mMap.addPolyline(mPath);
+
+                    }else{
+                        MessageDialog dialog = new MessageDialog(MapsActivity.this);
+                        dialog.setTitle("Oops..!");
+                        dialog.setContent("Distance is too far, please enter valid address.");
+                        dialog.setCancelable();
+                        dialog.show(null);
+                    }
+                }
+            }).execute(url);
+        }
+    }
+
+    /**
+     * returns URL to the Google Directions API
+     * @param origin
+     * @param dest
+     * @return
+     */
+    private String getDirectionsUrl(LatLng origin,LatLng dest) {
+
+        // Origin of route
+        String str_origin = "origin=" + origin.latitude + "," + origin.longitude;
+
+        // Destination of route
+        String str_dest = "destination=" + dest.latitude + "," + dest.longitude;
+
+        // Sensor enabled
+        String sensor = "sensor=false";
+
+        // Building the parameters to the web service
+        String parameters = str_origin + "&" + str_dest + "&" + sensor;
+
+        // Output format
+        String output = "json";
+
+        // Building the url to the web service
+        String url = "https://maps.googleapis.com/maps/api/directions/" + output + "?" + parameters;
+
+        return url;
     }
 
     /**

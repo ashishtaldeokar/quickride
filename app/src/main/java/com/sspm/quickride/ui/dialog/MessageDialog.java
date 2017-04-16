@@ -56,7 +56,7 @@ public class MessageDialog {
                         @Override
                         public void onClick(MaterialDialog dialog, DialogAction which) {
                             dialog.dismiss();
-                            callback.onSuccess();
+                            if(callback != null) callback.onSuccess();
                         }
                     })
                     .cancelable(isCancelable)
@@ -73,7 +73,7 @@ public class MessageDialog {
                         @Override
                         public void onClick(MaterialDialog dialog, DialogAction which) {
                             dialog.dismiss();
-                            callback.onSuccess();
+                            if(callback != null) callback.onSuccess();
                         }
                     })
                     .negativeText(negativeText)
@@ -81,7 +81,7 @@ public class MessageDialog {
                         @Override
                         public void onClick(MaterialDialog dialog, DialogAction which) {
                             dialog.dismiss();
-                            callback.onFailure();
+                            if(callback != null) callback.onFailure();
                         }
                     })
                     .cancelable(isCancelable)
